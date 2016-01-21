@@ -44,9 +44,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## Examples
 
-These examples aren't going to be spectacularly complex, they're just here to demonstrate how you could
-use this library to make event handling more exciting. It should be noted that all public `Events` methods
-return a `Listener` instance.
+These examples will not be spectacularly complex, they're just here to demonstrate how you could use this
+library to add a little spice to your event handling. It may be of interest to developers to know that
+all public methods in the `Events` class will return a `Listener` that can be unregistered using the
+traditional procedure.
 
 ### Basic Handlers
 

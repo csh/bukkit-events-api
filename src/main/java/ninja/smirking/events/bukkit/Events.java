@@ -102,8 +102,8 @@ public final class Events {
     }
 
     private static StackTraceElement[] getTrimmedTrace(Throwable throwable) {
-        List<StackTraceElement> elems = Lists.newArrayList(throwable.getStackTrace());
-        for (Iterator<StackTraceElement> iterator = elems.iterator(); iterator.hasNext(); ) {
+        List<StackTraceElement> elements = Lists.newArrayList(throwable.getStackTrace());
+        for (Iterator<StackTraceElement> iterator = elements.iterator(); iterator.hasNext(); ) {
             StackTraceElement element = iterator.next();
             try {
                 Class clazz = Class.forName(element.getClassName(), false, Thread.currentThread().getContextClassLoader());
@@ -114,7 +114,7 @@ public final class Events {
                 // $COVERAGE-IGNORE$
             }
         }
-        return elems.toArray(new StackTraceElement[elems.size()]);
+        return elements.toArray(new StackTraceElement[elements.size()]);
     }
 
     /**

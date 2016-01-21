@@ -502,12 +502,12 @@ final class MockServer implements Server {
     }
 
     @Override
-    public CachedServerIcon loadServerIcon(File file) throws IllegalArgumentException, Exception {
+    public CachedServerIcon loadServerIcon(File file) throws Exception {
         return null;
     }
 
     @Override
-    public CachedServerIcon loadServerIcon(BufferedImage image) throws IllegalArgumentException, Exception {
+    public CachedServerIcon loadServerIcon(BufferedImage image) throws Exception {
         return null;
     }
 
@@ -519,12 +519,12 @@ final class MockServer implements Server {
     @Override
     public Set<String> getListeningPluginChannels() {
         return null;
-    }    @Override
+    }
+
+    @Override
     public void setIdleTimeout(int threshold) {
 
     }
-
-
 
     @Override
     public int getIdleTimeout() {
@@ -537,6 +537,7 @@ final class MockServer implements Server {
     }
 
     @Override
+    @SuppressWarnings("Deprecation")
     public UnsafeValues getUnsafe() {
         return null;
     }
@@ -545,6 +546,4 @@ final class MockServer implements Server {
     public Spigot spigot() {
         return null;
     }
-
-
 }

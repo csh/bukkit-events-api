@@ -1,6 +1,7 @@
 package ninja.smirking.events.bukkit;
 
 import java.lang.reflect.Constructor;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -117,8 +118,8 @@ public final class EventsTest {
     @Test
     public void testBenchmark() throws Exception {
         if (Boolean.getBoolean("benchmark")) {
-            long nanos = System.currentTimeMillis();
-            System.out.println(nanos);
+            long nanoseconds = System.currentTimeMillis();
+            System.out.println(nanoseconds);
             Events.observeIf(DummyEvent.class, new Consumer<DummyEvent>() {
                 private int doots = 0;
 
@@ -134,9 +135,9 @@ public final class EventsTest {
             }, event -> event.getMessage().length() > 5);
 
             for (int i = 0; i < 100000; i++) {
-                server.getPluginManager().callEvent(new DummyEvent("agfgasdgfasdfsadfasd"));
+                server.getPluginManager().callEvent(new DummyEvent(UUID.randomUUID().toString()));
             }
-            System.out.println(System.currentTimeMillis() - nanos);
+            System.out.println(System.currentTimeMillis() - nanoseconds);
         }
     }
 
