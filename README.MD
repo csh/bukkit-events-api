@@ -1,6 +1,10 @@
 # Events
 
+[![Build Status](https://travis-ci.org/Fireflies/bukkit-events-api.svg?branch=master)](https://travis-ci.org/Fireflies/bukkit-events-api)
+
 A fancy library for fancy event handling.
+
+For now you must manually compile the library, it will be available from the Sonatype snapshot repository soon.
 
 ## Table of Contents
 
