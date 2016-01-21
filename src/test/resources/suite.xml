@@ -1,6 +1,6 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="Events" verbose="10" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
-    <test name="Coverage">
+<suite name="Events" verbose="2" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+    <test name="Functionality">
         <classes>
             <class name="ninja.smirking.events.bukkit.EventsTest"/>
         </classes>

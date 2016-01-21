@@ -34,10 +34,6 @@ public final class Events {
 
     private static Plugin plugin;
 
-    private Events() {
-        throw new UnsupportedOperationException("Events cannot be instantiated!");
-    }
-
     /**
      * Register a {@link Listener} which handles an event of the given type once before unregistering itself.
      *
@@ -54,67 +50,6 @@ public final class Events {
                 event.getHandlers().unregister(listener);
             }
         });
-    }
-
-    private static <T extends Event> Listener registerListener(Class<T> eventType, BiConsumer<Listener, ? super T> handler) {
-        Preconditions.checkNotNull(eventType, "eventType");
-        Preconditions.checkNotNull(handler, "handler");
-
-        Listener listener = new Listener() {
-        };
-        //noinspection Convert2Lambda
-        getPlugin().getServer().getPluginManager().registerEvent(eventType, listener, EventPriority.NORMAL, new EventExecutor() {
-            @Override
-            public void execute(Listener listener, Event event) throws EventException {
-                if (event.getClass() == eventType) {
-                    handler.accept(listener, eventType.cast(event));
-                }
-            }
-        }, plugin, false);
-        return listener;
-    }
-
-    private static <T extends Event> void safeInvoke(Class<T> type, T event, Consumer<? super T> handler) {
-        Preconditions.checkNotNull(handler, "handler cannot be null");
-        Preconditions.checkNotNull(event, "event cannot be null");
-        try {
-            handler.accept(event);
-        } catch (Throwable cause) {
-            cause.setStackTrace(getTrimmedTrace(cause));
-            String stack = cause.getMessage();
-            try (StringWriter stream = new StringWriter(); PrintWriter writer = new PrintWriter(stream)) {
-                cause.printStackTrace(writer);
-                stack = stream.toString();
-            } catch (IOException ignore) {
-                // $COVERAGE-IGNORE$
-            }
-            internalLogger.log(Level.INFO, "An unhandled exception was intercepted whilst handling {0}: \n{1}", new Object[]{
-                    type.getName(), stack
-            });
-        }
-    }
-
-    private static Plugin getPlugin() {
-        if (plugin == null) {
-            plugin = JavaPlugin.getProvidingPlugin(Events.class);
-        }
-        return plugin;
-    }
-
-    private static StackTraceElement[] getTrimmedTrace(Throwable throwable) {
-        List<StackTraceElement> elements = Lists.newArrayList(throwable.getStackTrace());
-        for (Iterator<StackTraceElement> iterator = elements.iterator(); iterator.hasNext(); ) {
-            StackTraceElement element = iterator.next();
-            try {
-                Class clazz = Class.forName(element.getClassName(), false, Thread.currentThread().getContextClassLoader());
-                if (clazz == Events.class || (clazz.isAnonymousClass() && clazz.getEnclosingClass() == Events.class)) {
-                    iterator.remove();
-                }
-            } catch (ClassNotFoundException ignored) {
-                // $COVERAGE-IGNORE$
-            }
-        }
-        return elements.toArray(new StackTraceElement[elements.size()]);
     }
 
     /**
@@ -184,5 +119,71 @@ public final class Events {
                 safeInvoke(eventType, event, e -> handler.accept(e, deadline - invoked));
             }
         });
+    }
+
+    private static <T extends Event> Listener registerListener(Class<T> eventType, BiConsumer<Listener, ? super T> handler) {
+        Preconditions.checkNotNull(eventType, "eventType");
+        Preconditions.checkNotNull(handler, "handler");
+
+        Listener listener = new Listener() {
+        };
+        //noinspection Convert2Lambda
+        getPlugin().getServer().getPluginManager().registerEvent(eventType, listener, EventPriority.NORMAL, new EventExecutor() {
+            @Override
+            public void execute(Listener listener, Event event) throws EventException {
+                if (event.getClass() == eventType) {
+                    handler.accept(listener, eventType.cast(event));
+                }
+            }
+        }, plugin, false);
+        return listener;
+    }
+
+    private static <T extends Event> void safeInvoke(Class<T> type, T event, Consumer<? super T> handler) {
+        Preconditions.checkNotNull(handler, "handler cannot be null");
+        Preconditions.checkNotNull(event, "event cannot be null");
+        Preconditions.checkNotNull(type, "type cannot be null");
+        try {
+            handler.accept(event);
+        } catch (Throwable cause) {
+            cause.setStackTrace(getTrimmedTrace(cause));
+            String stack = cause.getMessage();
+            try (StringWriter stream = new StringWriter(); PrintWriter writer = new PrintWriter(stream)) {
+                cause.printStackTrace(writer);
+                stack = stream.toString();
+            } catch (IOException ignore) {
+                // $COVERAGE-IGNORE$
+            }
+            internalLogger.log(Level.INFO, "An unhandled exception was intercepted whilst handling {0}: \n{1}", new Object[]{
+                    type.getName(), stack
+            });
+        }
+    }
+
+    private static Plugin getPlugin() {
+        if (plugin == null) {
+            plugin = JavaPlugin.getProvidingPlugin(Events.class);
+        }
+        return plugin;
+    }
+
+    private static StackTraceElement[] getTrimmedTrace(Throwable throwable) {
+        List<StackTraceElement> elements = Lists.newArrayList(throwable.getStackTrace());
+        for (Iterator<StackTraceElement> iterator = elements.iterator(); iterator.hasNext(); ) {
+            StackTraceElement element = iterator.next();
+            try {
+                Class clazz = Class.forName(element.getClassName(), false, Thread.currentThread().getContextClassLoader());
+                if (clazz == Events.class || (clazz.isAnonymousClass() && clazz.getEnclosingClass() == Events.class)) {
+                    iterator.remove();
+                }
+            } catch (ClassNotFoundException ignored) {
+                // $COVERAGE-IGNORE$
+            }
+        }
+        return elements.toArray(new StackTraceElement[elements.size()]);
+    }
+
+    private Events() {
+        throw new UnsupportedOperationException("Events cannot be instantiated!");
     }
 }
