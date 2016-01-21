@@ -56,6 +56,13 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier 'javadoc'
 }
 
+javadoc {
+    configure(options) {
+        options.links('https://docs.oracle.com/javase/8/docs/api/')
+        options.links('https://hub.spigotmc.org/javadocs/spigot/')
+    }
+}
+
 publishing {
     repositories {
         maven {
