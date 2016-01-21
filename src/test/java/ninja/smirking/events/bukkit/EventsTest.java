@@ -1,6 +1,7 @@
 package ninja.smirking.events.bukkit;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -50,7 +51,7 @@ public class EventsTest extends PowerMockTestCase {
         this.testName = method.getName();
     }
 
-    @Test(expectedExceptions = UnsupportedOperationException.class)
+    @Test(expectedExceptions = InvocationTargetException.class)
     public void satisfyCoverage() throws Exception {
         Constructor<Events> constructor = Events.class.getDeclaredConstructor();
         constructor.setAccessible(true);
