@@ -4,15 +4,49 @@
 
 A fancy library for fancy event handling.
 
-For now you must manually compile the library, it will be available from the Sonatype snapshot repository soon.
-
 ## Table of Contents
 
+- [Usage](#usage)
 - [License](#license)
 - [Examples](#examples)
     - [Basic Handlers](#basic-handlers)
     - [Time Based Handling](#time-based-handling)
     - [Conditional Handling](#conditional-handling)
+
+## Usage
+
+**You must add the [Sonatype snapshot repository](https://oss.sonatype.org/content/repositories/snapshots) to your build tool of choice.**
+
+You may import this library by adding the following snippets to your build configuration, if you want to see your build tool of choice
+listed here then I'm happy to accept PRs.
+
+This is not a standalone plugin so you must include the classes in your JAR.
+
+##### Gradle
+
+You can use John Engelman's "[Shadow](https://github.com/johnrengelman/shadow)" plugin, or you could setup a task manually for a little
+practice. :wink:
+
+```groovy
+dependencies {
+    compile group: 'ninja.smirking', name: 'bukkit-events-api', version: '1.0-SNAPSHOT'
+}
+```
+
+##### Maven
+
+You must use the `maven-shade-plugin` plugin to include the classes in your final JAR.
+
+```xml
+<dependencies>
+  <dependency>
+    <groupId>ninja.smirking</groupId>
+    <artifactId>bukkit-events-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <scope>compile</scope>
+  </dependency>
+</dependencies>
+```
 
 ## License
 

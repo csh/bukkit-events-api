@@ -1,6 +1,7 @@
 group 'ninja.smirking'
 version '1.0-SNAPSHOT'
 
+apply plugin: 'maven-publish'
 apply plugin: 'jacoco'
 apply plugin: 'maven'
 apply plugin: 'idea'
@@ -8,7 +9,8 @@ apply plugin: 'java'
 
 sourceCompatibility = 1.8
 
-def powermockVersion = "1.6.4"
+def spigotVersion = '1.8.8-R0.1-SNAPSHOT'
+def powermockVersion = '1.6.4'
 
 repositories {
     mavenCentral()
@@ -21,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.spigotmc', name: 'spigot-api', version: '1.8.8-R0.1-SNAPSHOT'
+    compile group: 'org.spigotmc', name: 'spigot-api', version: spigotVersion
     testCompile group: 'org.powermock', name: 'powermock-module-junit4-rule-agent', version: powermockVersion
     testCompile group: 'org.powermock', name: 'powermock-module-junit4-rule', version: powermockVersion
     testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
@@ -41,5 +43,55 @@ test {
     jacoco {
         append = false
         jmx = true
+    }
+}
+
+task sourceJar(type: Jar, dependsOn: classes) {
+    from sourceSets.main.allJava
+    classifier 'src'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from javadoc.destinationDir
+    classifier 'javadoc'
+}
+
+publishing {
+    repositories {
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+            credentials {
+                username System.getenv("REPOSITORY_USERNAME")
+                password System.getenv("REPOSITORY_PASSWORD")
+            }
+        }
+    }
+
+    publications {
+        maven(MavenPublication) {
+            artifact javadocJar
+            artifact sourceJar
+            artifact jar
+
+            pom.withXml {
+                asNode().appendNode('url', 'https://github.com/Fireflies/bukkit-events-api')
+                asNode().appendNode('description', 'Fancy event handling for Bukkit')
+
+                def license = asNode().appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'BSD License')
+                license.appendNode('url', 'https://github.com/Fireflies/bukkit-events-api/blob/master/src/main/resources/LICENSE')
+                license.appendNode('distribution', 'repo')
+
+                def dependency = asNode().appendNode('dependencies').appendNode('dependency')
+                dependency.appendNode('groupId', 'org.spigotmc')
+                dependency.appendNode('artifactId', 'spigot-api')
+                dependency.appendNode('version', spigotVersion)
+                dependency.appendNode('scope', 'provided')
+
+                def repositories = asNode().appendNode('repositories').appendNode('repository')
+                repositories.appendNode('id', 'spigot-repo')
+                repositories.appendNode('url', 'https://hub.spigotmc.org/nexus/content/groups/public')
+            }
+        }
     }
 }
