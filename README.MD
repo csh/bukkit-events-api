@@ -96,7 +96,7 @@ method and for observing multiple events we use `observeAll`.
 Singular event example:
 ```java
 Events.observe(PlayerLoginEvent.class, event -> {
-    event.getPlayer().getServer().getLogger().log(Level.INFO, "Woohoo, that's out first player for today!");
+    event.getPlayer().getServer().getLogger().log(Level.INFO, "Woohoo, that's our first player for today!");
 });
 ```
 
