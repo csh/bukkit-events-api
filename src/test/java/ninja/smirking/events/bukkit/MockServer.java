@@ -42,6 +42,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.util.CachedServerIcon;
 
+@SuppressWarnings("deprecation")
 final class MockServer implements Server {
     private final PluginManager pluginManager;
     private final Logger logger;
@@ -537,7 +538,6 @@ final class MockServer implements Server {
     }
 
     @Override
-    @SuppressWarnings("Deprecation")
     public UnsafeValues getUnsafe() {
         return null;
     }

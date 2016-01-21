@@ -24,11 +24,9 @@ repositories {
 
 dependencies {
     compile group: 'org.spigotmc', name: 'spigot-api', version: spigotVersion
-    testCompile group: 'org.powermock', name: 'powermock-module-junit4-rule-agent', version: powermockVersion
-    testCompile group: 'org.powermock', name: 'powermock-module-junit4-rule', version: powermockVersion
-    testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
+    testCompile group: 'org.powermock', name: 'powermock-module-testng', version: powermockVersion
     testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: powermockVersion
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'org.testng', name: 'testng', version: '6.9.10'
 }
 
 jacocoTestReport {
@@ -40,9 +38,11 @@ jacocoTestReport {
 }
 
 test {
+    useTestNG() {
+        suites 'src/test/resources/suite.xml'
+    }
     jacoco {
         append = false
-        jmx = true
     }
 }
 

@@ -1,6 +1,7 @@
 package ninja.smirking.events.bukkit;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -10,17 +11,14 @@ import org.bukkit.Server;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
 import org.mockito.Matchers;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.Reporter;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import static org.junit.Assert.assertEquals;
 
@@ -31,25 +29,28 @@ import static org.junit.Assert.assertEquals;
  * @version 1.0
  * @since 1.0
  */
-@RunWith(PowerMockRunner.class)
 @PrepareForTest({JavaPlugin.class})
-public final class EventsTest {
+public class EventsTest extends PowerMockTestCase {
     private static JavaPlugin plugin;
     private static Server server;
 
-    @Rule
-    private final TestName testName = new TestName();
+    private String testName;
 
-    @BeforeClass
-    public static void tinker() throws Exception {
-        server = new MockServer();
+    @BeforeMethod(description = "Mock JavaPlugin so that we can use it's static utility methods without hassle")
+    public void tinker() throws Exception {
         PowerMockito.mockStatic(JavaPlugin.class);
 
+        server = new MockServer();
         plugin = new MockPlugin(server);
-        Mockito.when(JavaPlugin.getProvidingPlugin(Matchers.eq(Events.class))).thenReturn(plugin);
+        PowerMockito.when(JavaPlugin.getProvidingPlugin(Matchers.eq(Events.class))).thenReturn(plugin);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @BeforeMethod
+    public void setTestName(Method method) {
+        this.testName = method.getName();
+    }
+
+    @Test(expectedExceptions = UnsupportedOperationException.class)
     public void satisfyCoverage() throws Exception {
         Constructor<Events> constructor = Events.class.getDeclaredConstructor();
         constructor.setAccessible(true);
@@ -71,11 +72,12 @@ public final class EventsTest {
     }
 
     private void log(String message) {
-        System.out.printf("[%s] %s%n", testName.getMethodName(), message);
+        System.out.printf("[%s] %s%n", testName, message);
     }
 
     @Test
     public void testObserveAll() throws Exception {
+        Reporter.log("Hi there");
         AtomicInteger counter = new AtomicInteger();
         Events.observeAll(DummyEvent.class, event -> increment(counter));
         server.getPluginManager().callEvent(new DummyEvent());
@@ -149,7 +151,7 @@ public final class EventsTest {
         server.getPluginManager().callEvent(new DummyEvent());
     }
 
-    @After
+    @AfterMethod
     public void after() throws Exception {
         HandlerList.unregisterAll(plugin);
     }
