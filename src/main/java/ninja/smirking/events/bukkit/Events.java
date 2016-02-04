@@ -1,8 +1,5 @@
 package ninja.smirking.events.bukkit;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventException;
@@ -43,13 +41,26 @@ public final class Events {
      * @return non-null Bukkit {@link Listener}.
      */
     public static <T extends Event> Listener observe(Class<T> eventType, Consumer<? super T> handler) {
+        return observe(eventType, handler, EventPriority.NORMAL);
+    }
+
+    /**
+     * Register a {@link Listener} which handles an event of the given type once before unregistering itself.
+     *
+     * @param eventType non-null event type.
+     * @param handler   non-null consumer that handles the event.
+     * @param priority  handler priority
+     * @param <T>       event type.
+     * @return non-null Bukkit {@link Listener}.
+     */
+    public static <T extends Event> Listener observe(Class<T> eventType, Consumer<? super T> handler, EventPriority priority) {
         return registerListener(eventType, (listener, event) -> {
             try {
                 safeInvoke(eventType, event, handler);
             } finally {
                 event.getHandlers().unregister(listener);
             }
-        });
+        }, priority);
     }
 
     /**
@@ -62,7 +73,21 @@ public final class Events {
      * @return non-null Bukkit {@link Listener}.
      */
     public static <T extends Event> Listener observeAll(Class<T> eventType, Consumer<? super T> handler) {
-        return registerListener(eventType, (listener, event) -> safeInvoke(eventType, event, handler));
+        return observeAll(eventType, handler, EventPriority.NORMAL);
+    }
+
+    /**
+     * Register a {@link Listener} which handles an event of the given type multiple times.
+     * It is only unregistered when the providing plugin is disabled.
+     *
+     * @param eventType non-null event type.
+     * @param handler   non-null consumer that handles the event.
+     * @param priority  handler priority
+     * @param <T>       event type.
+     * @return non-null Bukkit {@link Listener}.
+     */
+    public static <T extends Event> Listener observeAll(Class<T> eventType, Consumer<? super T> handler, EventPriority priority) {
+        return registerListener(eventType, (listener, event) -> safeInvoke(eventType, event, handler), priority);
     }
 
     /**
@@ -76,11 +101,26 @@ public final class Events {
      * @return non-null Bukkit {@link Listener}.
      */
     public static <T extends Event> Listener observeIf(Class<T> eventType, Consumer<? super T> handler, Predicate<T> test) {
+        return observeIf(eventType, handler, test, EventPriority.NORMAL);
+    }
+
+    /**
+     * Register a {@link Listener} which handles an event of the given type multiple times.
+     * A {@link Predicate} controls which events are passed to the handler.
+     *
+     * @param eventType non-null event type.
+     * @param handler   non-null consumer that handles the event.
+     * @param test      non-null predicate that determines whether the event should be passed to the handler.
+     * @param priority  handler priority
+     * @param <T>       event type.
+     * @return non-null Bukkit {@link Listener}.
+     */
+    public static <T extends Event> Listener observeIf(Class<T> eventType, Consumer<? super T> handler, Predicate<T> test, EventPriority priority) {
         return registerListener(eventType, (listener, event) -> {
             if (test.test(event)) {
                 safeInvoke(eventType, event, handler);
             }
-        });
+        }, priority);
     }
 
     /**
@@ -95,7 +135,7 @@ public final class Events {
      * @return non-null Bukkit {@link Listener}.
      */
     public static <T extends Event> Listener observeFor(Class<T> eventType, Consumer<? super T> handler, long duration, TimeUnit unit) {
-        return observeFor(eventType, (event, time) -> handler.accept(event), duration, unit);
+        return observeFor(eventType, (event, time) -> handler.accept(event), duration, unit, EventPriority.NORMAL);
     }
 
     /**
@@ -110,6 +150,22 @@ public final class Events {
      * @return non-null Bukkit {@link Listener}.
      */
     public static <T extends Event> Listener observeFor(Class<T> eventType, BiConsumer<? super T, Long> handler, long duration, TimeUnit unit) {
+        return observeFor(eventType, handler, duration, unit, EventPriority.NORMAL);
+    }
+
+    /**
+     * Register a {@link Listener} which handles an event of the given type multiple times.
+     * It is unregistered after the given duration has passed.
+     *
+     * @param eventType non-null event type.
+     * @param handler   non-null consumer that handles the event and informs the handler of how many milliseconds are left before the {@link Listener} unregisters itself.
+     * @param duration  how long it should be before the {@link Listener} unregisters itself.
+     * @param unit      the unit that the {@code duration} was given in.
+     * @param priority  handler priority
+     * @param <T>       event type.
+     * @return non-null Bukkit {@link Listener}.
+     */
+    public static <T extends Event> Listener observeFor(Class<T> eventType, BiConsumer<? super T, Long> handler, long duration, TimeUnit unit, EventPriority priority) {
         long deadline = Math.addExact(System.currentTimeMillis(), unit.toMillis(duration));
         return registerListener(eventType, (listener, event) -> {
             long invoked = System.currentTimeMillis();
@@ -118,17 +174,17 @@ public final class Events {
             } else {
                 safeInvoke(eventType, event, e -> handler.accept(e, deadline - invoked));
             }
-        });
+        }, priority);
     }
 
-    private static <T extends Event> Listener registerListener(Class<T> eventType, BiConsumer<Listener, ? super T> handler) {
+    private static <T extends Event> Listener registerListener(Class<T> eventType, BiConsumer<Listener, ? super T> handler, EventPriority priority) {
         Preconditions.checkNotNull(eventType, "eventType");
         Preconditions.checkNotNull(handler, "handler");
 
         Listener listener = new Listener() {
         };
         //noinspection Convert2Lambda
-        getPlugin().getServer().getPluginManager().registerEvent(eventType, listener, EventPriority.NORMAL, new EventExecutor() {
+        getPlugin().getServer().getPluginManager().registerEvent(eventType, listener, priority, new EventExecutor() {
             @Override
             public void execute(Listener listener, Event event) throws EventException {
                 if (event.getClass() == eventType) {
@@ -146,16 +202,9 @@ public final class Events {
         try {
             handler.accept(event);
         } catch (Throwable cause) {
-            cause.setStackTrace(getTrimmedTrace(cause));
-            String stack = cause.getMessage();
-            try (StringWriter stream = new StringWriter(); PrintWriter writer = new PrintWriter(stream)) {
-                cause.printStackTrace(writer);
-                stack = stream.toString();
-            } catch (IOException ignore) {
-                // $COVERAGE-IGNORE$
-            }
+            trimStackTrace(cause);
             internalLogger.log(Level.INFO, "An unhandled exception was intercepted whilst handling {0}: \n{1}", new Object[]{
-                    type.getName(), stack
+                    type.getName(), Throwables.getStackTraceAsString(cause)
             });
         }
     }
@@ -167,7 +216,7 @@ public final class Events {
         return plugin;
     }
 
-    private static StackTraceElement[] getTrimmedTrace(Throwable throwable) {
+    private static void trimStackTrace(Throwable throwable) {
         List<StackTraceElement> elements = Lists.newArrayList(throwable.getStackTrace());
         for (Iterator<StackTraceElement> iterator = elements.iterator(); iterator.hasNext(); ) {
             StackTraceElement element = iterator.next();
@@ -180,7 +229,7 @@ public final class Events {
                 // $COVERAGE-IGNORE$
             }
         }
-        return elements.toArray(new StackTraceElement[elements.size()]);
+        throwable.setStackTrace(elements.toArray(new StackTraceElement[elements.size()]));
     }
 
     private Events() {
