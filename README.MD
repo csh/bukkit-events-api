@@ -104,7 +104,7 @@ Events.observe(PlayerLoginEvent.class, event -> {
 Multiple events example:
 ```java
 AtomicInteger counter = new AtomicInteger();
-Events.observe(PlayerLoginEvent.class, event -> {
+Events.observeAll(PlayerLoginEvent.class, event -> {
     event.getPlayer().getServer().getLogger().log(Level.INFO, "Woohoo, {0} players have logged in today!", new Object[] {
         counter.incrementAndGet();
     });
