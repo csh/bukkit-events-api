@@ -1,6 +1,6 @@
 # Events
 
-[![Build Status](https://travis-ci.org/Fireflies/bukkit-events-api.svg?branch=master)](https://travis-ci.org/Fireflies/bukkit-events-api)
+[![Build Status](https://travis-ci.org/csh/bukkit-events-api.svg?branch=master)](https://travis-ci.org/csh/bukkit-events-api)
 [![Coverage Status](https://coveralls.io/repos/github/Fireflies/bukkit-events-api/badge.svg?branch=master)](https://coveralls.io/github/Fireflies/bukkit-events-api?branch=master)
 
 A fancy library for fancy event handling.
